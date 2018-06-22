@@ -1,0 +1,2 @@
+# when deploying from Windows text files in model/ dir must have LF line endings
+model/* eol=lf
