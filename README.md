@@ -38,7 +38,7 @@ You will need an Azure subscription to deploy the web service. You can get a fre
 
    Currently there are steps for deploying Azure ML service for the following models (the list will grow):
    * Images
-        * YOLOv3
+        * [YOLOv3](./Image/yolov3/)
 
 ## Setting up Local Debugging Environment (Linux only)
 
