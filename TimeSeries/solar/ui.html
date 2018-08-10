@@ -1,0 +1,181 @@
+<style>
+  #res {
+    width: 200px;
+    height: 30px;
+    border: 1px solid black;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    min: 0;
+    max: 20000;
+  }
+
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+  }
+
+  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+</style>
+
+<h1>Solar Power Forcasting using IoT Data with CNTK on Azure ML</h1>
+<p>This is a simple ui demonstration of a web service on Azure ML. </p>
+<p>This web service uses a CNTK model that is trained on time series data. To learn more about the data and training process, please refer to <a href="https://github.com/Microsoft/CNTK/blob/master/Tutorials/CNTK_106B_LSTM_Timeseries_with_IOT_Data.ipynb" target="_blank">this CNTK post</a></p>
+<br/>
+<p>Using historic data from a solar panel, the model aims to predict the total power production for a given day using inital readings for that day.</p>
+<p>For example, a sample input data for a single day can be something like:</p>
+<table style="width:25%">
+  <tr>
+    <th></th>
+    <th>Seq 0</th>
+    <th>Seq 1</th> 
+    <th>Seq 2</th>
+    <th>Seq 3</th>
+  </tr>
+  <tr>
+    <td><span style="font-weight:bold">Sample 1</span></td>
+    <td>0</td>
+    <td>13.97</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><span style="font-weight:bold">Sample 2</span></td>
+    <td>0</td>
+    <td>13.97</td>
+    <td>66.35</td>
+    <td>207.5</td>
+  </tr>
+</table>
+<br/>
+<p>Since the two sample inputs are from the same day, both sequence should optimally output same results.</p>
+<table style="width:15%">
+  <tr>
+    <th></th>
+    <th>Model ouput</th>
+  </tr>
+  <tr>
+    <td><span style="font-weight:bold">Sample 1</span></td>
+    <td>4778</td>
+  </tr>
+  <tr>
+    <td><span style="font-weight:bold">Sample 2</span></td>
+    <td>4778</td>
+  </tr>
+</table>
+</br>
+<p>Input your cumulative total power production values here.</p>
+<p>Empty sequences will be ignored. <span style="font-weight:bold">(range: 0 - 20000 Wh)</span></p>
+<div id="container">
+  <span>Seq 0: </span><input type="number" id="seq0"/><br/>
+  <span>Seq 1: </span><input type="number" id="seq1"/><br/>
+</div>
+<div id="outofOrderSign", style="display: none">
+  Inputs should be in strictly increasing order.
+</div>
+<div id="minFieldSign", style="display: none">
+  Minimum input size is 2.
+</div>
+<div id="maxFieldSign", style="display: none">
+  Maximum input size is 14.
+</div>
+</br>
+<button id="addField", onclick="addField()">Add field</button>
+<button id="deleteField", onclick="deleteField()">Delete field</button></br>
+</br>
+<div id="res"></div>
+</br>
+<button id="send">Forcast Solar Production</button>
+
+<script>
+  var send_btn = document.getElementById('send'),
+      container = document.getElementById("container"),
+      res = document.getElementById('res');
+
+  send_btn.onclick = function sendData() {
+    document.getElementById("outofOrderSign").style.display = "none";
+    res.innerHTML = "Doing prediction ..."
+    forcastProduction();
+  };
+
+  function forcastProduction() {
+    var input = generateInput();
+    if (!input)
+      return;
+    var req = new XMLHttpRequest();
+    req.responseType = "json";
+    req.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        res.innerHTML = req.response[0]
+      }
+    };
+
+    var url = document.baseURI
+    url = url.substring(0, url.lastIndexOf('/'))
+    url += '/score'
+
+    req.open('POST', url);
+    req.send(input);
+  }
+
+  function generateInput()
+  {
+    var count = container.getElementsByTagName("input").length;
+    var toSend = "";
+    var i, nextval, lastval = 0.0;
+    for (i = 0; i < count; i++) {
+      if (document.getElementById("seq" + i).value) {
+        nextval = document.getElementById("seq" + i).value
+        if (lastval > parseFloat(nextval)) {
+          document.getElementById("outofOrderSign").style.display = "block";
+          res.innerHTML = ""
+          return null;
+        }
+        lastval = nextval;
+        toSend += nextval + ",";
+      }
+    }
+    toSend = toSend.slice(0, -1);
+    return toSend;
+  }
+
+  function addField()
+  {
+    document.getElementById("minFieldSign").style.display = "none";
+    document.getElementById("maxFieldSign").style.display = "none";
+    var count = container.getElementsByTagName("input").length;
+    if (count < 14) {
+      var spantext = document.createElement("span");
+      spantext.appendChild(document.createTextNode("Seq " + count + ": "));
+      container.appendChild(spantext);
+      var inputfield = document.createElement("input");
+      inputfield.setAttribute("id", "seq" + count);
+      inputfield.type = "number";
+      container.appendChild(inputfield);
+      container.appendChild(document.createElement("br"));
+    } else {
+       document.getElementById("maxFieldSign").style.display = "block";
+    }
+  }
+
+  function deleteField()
+  {
+    document.getElementById("minFieldSign").style.display = "none";
+    document.getElementById("maxFieldSign").style.display = "none";
+    var count = container.getElementsByTagName("input").length;
+    if (count > 2) {
+      container.removeChild(container.lastChild);
+      container.removeChild(container.lastChild);
+      container.removeChild(container.lastChild);
+    } else {
+       document.getElementById("minFieldSign").style.display = "block";
+    }
+  }
+</script>

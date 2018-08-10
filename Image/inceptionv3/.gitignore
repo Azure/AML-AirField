@@ -1,13 +1,8 @@
 __pycache__/
 *.pyc
 
-model/
-!model/darknet.py
+model/classify_image_graph_def.pb
 
-darknet/
-data/
-
-out.png
 aml_blueprint.py
 aml_logger.py
 aml_response.py

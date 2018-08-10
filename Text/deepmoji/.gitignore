@@ -2,12 +2,10 @@ __pycache__/
 *.pyc
 
 model/
-!model/darknet.py
-
-darknet/
 data/
+torchmoji/
+torchmoji_repo/
 
-out.png
 aml_blueprint.py
 aml_logger.py
 aml_response.py

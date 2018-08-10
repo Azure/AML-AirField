@@ -1,0 +1,145 @@
+<style>  
+  #res {
+    min-width: 300px;
+    min-height: 70px;
+    border: 1px solid black;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>
+
+<h1>Predict Airbnb Price using a Spark Model with MLeap on Azure ML</h1>
+<br/>
+<br/>
+<div id="params">
+  State :<br/>
+  <select name="state" form="stateform">
+    <option value="NY">New York</option>
+    <option value="CA">California</option>
+    <option value="London">London</option>
+    <option value="Berlin">Berlin</option>
+    <option value="TX">Texas</option>
+    <option value="IL">Illinois</option>
+    <option value="OR">Oregon</option>
+    <option value="DC">Washington, D.C.</option>
+    <option value="WA">Washington</option>
+    <option value="Other">Other</option>
+  </select><br/><br/>
+  Square-feet :<br/>
+  <input type="number" name="square_feet" value=550.0><br/><br/>
+  Bedrooms :<br/>
+  <input type="number" name="bedrooms" value=1><br/><br/>
+  Bathrooms :<br/>
+  <input type="number" name="bathrooms" value=1><br/><br/>
+  Security deposit :<br/>
+  <input type="number" name="security_deposit" value=160.0><br/><br/>
+  Cleaning fee :<br/>
+  <input type="number" name="cleaning_fee" value=40.0><br/><br/>
+  Extra people :<br/>
+  <input type="number" name="extra_people" value=0><br/><br/>
+  Room type :<br/>
+  <select name="room_type" form="roomtypeform">
+    <option value="Shared room">Shared room</option>
+    <option value="Entire home/apt">Entire home/apt</option>
+    <option value="Private room">Private room</option>
+  </select><br/><br/>
+  Cancellation policy :<br/>
+  <select name="cancellation_policy" form="cancelpolicyform">
+      <option value="flexible">Flexible: Full refund within limited period</option>
+      <option value="moderate">Moderate: Full refund within limited period</option>
+      <option value="strict">Strict: 50% refund up until 1 week prior to check in</option>
+      <option value="super_strict_30">Super Strict 30 Days: 50% refund up until 30 days prior to check in</option>
+      <option value="super_strict_60">Super Strict 60 Days: 50% refund up until 60 days prior to check in</option>
+      <option value="long_term">Long Term: First month not refundable, 30 day notice for cancellation</option>
+      <option value="no_refunds">No refunds</option>
+  </select><br/><br/>
+  Instant bookable :<br/>
+  <select name="instant_bookable" form="instantbookform">
+      <option value="0.0">No</option>
+      <option value="1.0">Yes</option>
+  </select><br/><br/>
+  Number of reviews :<br/>
+  <input type="number" name="number_of_reviews" value=15><br/><br/>
+  Review scores rating :<br/>
+  <input type="number" name="review_scores_rating" value=90.0><br/><br/>
+  Host is superhost :<br/>
+  <select name="host_is_superhost" form="superhostform">
+      <option value="0.0">No</option>
+      <option value="1.0">Yes</option>
+  </select><br/><br/>
+</div>
+<div id="res">
+  <ul>
+      <li>Linear Regression Prediction: </li>
+      <li>Random Forest Prediction: </li>
+  </ul>
+</div><br/>
+<button id="send">Predict Price</button>
+
+<script>
+  var send_btn = document.getElementById('send'),
+      res = document.getElementById('res');
+
+  send_btn.onclick = function sendData() {
+    res.innerHTML = "Doing prediction ..."
+    predictPricing();
+  };
+
+  function predictPricing() {
+    var input = JSON.stringify(generateRows());
+    var req = new XMLHttpRequest();
+    req.responseType = "json";
+    req.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        res.innerHTML = ''
+        var table = document.createElement("ul");
+        
+        var linode = document.createElement("li");
+        var litext = document.createTextNode("Linear Regression Prediction: " + String(req.response[0]).split(',')[0]);
+        linode.appendChild(litext);
+        
+        var rfnode = document.createElement("li");
+        var rftext = document.createTextNode("Random Forest Prediction: " + String(req.response[0]).split(',')[1]);
+        rfnode.appendChild(rftext);
+        
+        table.appendChild(linode);
+        table.appendChild(rfnode);
+        res.appendChild(table);
+      }
+    };
+
+    var url = document.baseURI
+    url = url.substring(0, url.lastIndexOf('/'))
+    url += '/score'
+
+    req.open('POST', url);
+    req.setRequestHeader("Content-Type", "application/json");
+    req.send(input);
+  }
+
+  function generateRows()
+  {
+    var rowData =
+      [[
+        document.getElementsByName('state')[0].value,
+        parseFloat(document.getElementsByName('bathrooms')[0].value),
+        parseFloat(document.getElementsByName('square_feet')[0].value),
+        parseFloat(document.getElementsByName('bedrooms')[0].value),
+        parseFloat(document.getElementsByName('security_deposit')[0].value),
+        parseFloat(document.getElementsByName('cleaning_fee')[0].value),
+        parseFloat(document.getElementsByName('extra_people')[0].value),
+        parseFloat(document.getElementsByName('number_of_reviews')[0].value),
+        parseFloat(document.getElementsByName('review_scores_rating')[0].value),
+        document.getElementsByName('room_type')[0].value,
+        document.getElementsByName('host_is_superhost')[0].value,
+        document.getElementsByName('cancellation_policy')[0].value,
+        document.getElementsByName('instant_bookable')[0].value
+      ]]
+    return rowData;
+  }
+
+</script>

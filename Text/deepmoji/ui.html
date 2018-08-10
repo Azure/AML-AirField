@@ -1,0 +1,129 @@
+<head>
+    <meta charset='utf-8'>
+</head>
+<style>  
+  #src {
+    min-width: 300px;
+    min-height: 70px;
+  }
+
+  #res {
+    min-width: 300px;
+    min-height: 50px;
+  }
+
+  table, th, td {
+    border: 1px solid black;
+    text-align: center;
+  }
+  
+  table {
+    border-collapse: collapse;
+    width: 750px;
+  }
+  
+  th {
+    height: 40px;
+  }
+
+  td {
+    height: 130px;
+    font-size: 200%;
+  }
+
+</style>
+
+<h1>Sentiment Analysis with DeepMoji on Azure ML</h1>
+<br/>
+<div id="src">
+    Input Text :<br/>
+    <textarea id="input" rows="4" cols="100">Input your text here for sentiment analysis!</textarea>
+</div>
+<br/>
+<button id="send">Analyze Sentiment</button><br/>
+<p id="status"></p>
+<div id="res">
+    <table>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </table>
+</div>
+<p id="total_score">Total Score : </p>
+
+<script>
+  var send_btn = document.getElementById('send'),
+      src = document.getElementById('src'),
+      res = document.getElementById('res');
+
+  send_btn.onclick = function sendData() {
+    document.getElementById('status').innerHTML = "Analyzing sentiment ..."
+    analyzeSentiment();
+  };
+
+  function analyzeSentiment() {
+    var top_k = 5;
+    var input = document.getElementById('input').value;
+    var req = new XMLHttpRequest();
+    req.responseType = "json";
+    req.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        res.innerHTML = ''
+        var table = document.createElement("table");
+        
+        var emoji_row = document.createElement("tr");
+        var unicode_row = document.createElement("tr");
+        var score_row = document.createElement("tr");
+        for (var i = 0; i < top_k; i++) {
+          var emoji_node = document.createElement("th");
+          var emoji_txt = document.createTextNode(req.response[i + 2].slice(1,-1));
+          emoji_node.appendChild(emoji_txt);
+          emoji_row.appendChild(emoji_node);
+
+          var unicode_node = document.createElement("td");
+          var unicode_str = "&#x" + req.response[i + 2 + top_k].slice(2) + ";";
+          unicode_node.innerHTML = unicode_str;
+          unicode_row.appendChild(unicode_node);
+
+          var score_node = document.createElement("th");
+          var score_text = document.createTextNode(req.response[i + 2 + top_k*2].toFixed(5));
+          score_node.appendChild(score_text);
+          score_row.appendChild(score_node);
+        }
+        table.appendChild(emoji_row);
+        table.appendChild(unicode_row);
+        table.appendChild(score_row);
+
+        res.appendChild(table);
+        document.getElementById('status').innerHTML = '';
+        document.getElementById('total_score').innerHTML = "Total Score : " + String(req.response[1])
+      }
+    };
+
+    var url = document.baseURI
+    url = url.substring(0, url.lastIndexOf('/'))
+    url += '/score'
+
+    req.open('POST', url);
+    req.send(input);
+  }
+
+</script>

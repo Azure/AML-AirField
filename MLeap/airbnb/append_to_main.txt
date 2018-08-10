@@ -1,0 +1,13 @@
+# Text to append to main.py for local debugging env setup
+import os
+import sys
+from pyspark import SparkConf, SparkContext
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+
+config = SparkConf()
+config.set("spark.jars", "model/mleap-airbnb-assembly-0.0.1.jar")
+config.set("spark.default.parallelism", 1)
+spark = SparkSession.builder.master("local[1]").config(conf=config).getOrCreate()
+sc = spark.sparkContext
+

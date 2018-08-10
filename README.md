@@ -2,6 +2,17 @@
 
 Demo of how to use Azure ML to deploy various models for Image, Text and Time Series processing as a web service.
 
+We currently provide steps to deploy Azure ML services for the following models:
+   * Images
+        * [YOLOv3 (Darknet)](./Image/yolov3/)
+        * [Inceptionv3 (Tensorflow)](./Image/inceptionv3/)
+   * Text
+        * [DeepMoji (PyTorch)](./Text/deepmoji/)
+   * Time Series
+        * [Forcasting Solar Power Production using IoT Data (CNTK)](./TimeSeries/solar)
+   * MLeap
+        * [Airbnb Price Prediction (PySpark)](./MLeap/airbnb)
+
 ## Setup steps
 
 You will need an Azure subscription to deploy the web service. You can get a free one
@@ -36,9 +47,42 @@ You will need an Azure subscription to deploy the web service. You can get a fre
 
 6. Navigate to one of directories listed below and read readme.md and then run `./deploy.sh`
 
-   Currently there are steps for deploying Azure ML service for the following models (the list will grow):
+   We currently provide steps to deploy Azure ML services for the following models:
    * Images
-        * [YOLOv3](./Image/yolov3/)
+        * [YOLOv3 (Darknet)](./Image/yolov3/)
+        * [Inceptionv3 (Tensorflow)](./Image/inceptionv3/)
+   * Text
+        * [DeepMoji (PyTorch)](./Text/deepmoji/)
+   * Time Series
+        * [Forcasting Solar Power Production using IoT Data (CNTK)](./TimeSeries/solar)
+   * MLeap
+        * [Airbnb Price Prediction (PySpark)](./MLeap/airbnb)
+
+## Test your deployed service using a UI web page
+
+To demonstrate a simple example of how you can customize your deployed web service, 
+we provide a HTML UI web page that is hosted by your deployed service.
+Because the service requires authentication keys to call to it directly, you must disable authentication of
+your service in order to use the HTML page we have provided in our exmaples.
+
+:warning: **!!! Note that your service will be publicly exposed if you disable authentication !!!** :warning:
+
+To disable authentication of your service:
+
+   * Get your deployed service's name:
+
+         kubectl get services
+
+   * Edit your service's configuration:
+
+         kubectl label --overwrite services [service_name] auth.enabled=false
+
+   * View your UI web page by going to `your_service_url/ui` (replace `/score` with `/ui`)
+
+        *If you do not know your service URL, you can get it by running:*
+
+         az ml service list realtime                            # Get your full service id
+         az ml service usage realtime -i [full_service_id]      # Get your service URL
 
 ## Setting up Local Debugging Environment (Linux only)
 

@@ -1,0 +1,16 @@
+name: deepmojienv
+channels:
+  - defaults
+  - soumith
+dependencies:
+  - python=3.5.2
+  - pytorch=0.2.0
+  - torchvision
+  - pip:
+    - numpy
+    - cython
+    - pyyaml
+    - scikit-learn
+    - scipy
+    - text-unidecode
+    - emoji

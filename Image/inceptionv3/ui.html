@@ -1,0 +1,190 @@
+<style>
+
+  #src.dragover {
+    background: rgba(0, 0, 0, .5);
+  }
+
+  #res, #src {
+    min-width: 300px;
+    min-height: 150px;
+    border: 1px solid black;
+  }
+
+  #res img, #src img {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+
+<h1>Image Recognition with InceptionV3 on Azure ML</h1>
+<button id="send" disabled>Retry Recognition</button>
+<br/>
+<br/>
+<div id="src">Drag&Drop Image Here<br/></div>
+<br/>
+<div id="res">Result will be here<br/></div>
+
+<script>
+  var dropzone = document.getElementById('src'),
+      send_btn = document.getElementById('send'),
+      src = dropzone,
+      res = document.getElementById('res');
+
+  dropzone.ondragover = function ondragover(e) {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  };
+
+  dropzone.ondrop = function ondrop(e) {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+
+    // try to get images from this dropevent
+    var imageObject = retrieveImageData(e.dataTransfer);
+    imageObject.crossOrigin = "Anonymous";
+    imageObject.removeAttribute("style")
+    imageObject.removeAttribute("class")
+    imageObject.removeAttribute("width")
+    imageObject.removeAttribute("height")
+
+    if (!imageObject) return;
+    src.innerHTML = '';
+    src.appendChild(imageObject);
+    send_btn.disabled = false;
+
+    imageObject.onload = function (){
+      res.innerHTML = "Recognizing ..."
+      recognizeObjects(src.firstChild);
+    }
+  };
+
+  dropzone.ondragexit = function (ondragexit) {
+    dropzone.classList.remove('dragover');
+  };
+
+  function retrieveImageData(dT) {
+    // first try to get Files
+    var files = getFiles(dT);
+    if (files.length) {
+      return files[0];
+    }
+
+    // if none, try to get HTMLImage or SVGImage
+    var elems = getHTMLMarkup(dT);
+    if (elems && elems.length) {
+      return elems[0];
+    }
+
+    src.innerHTML = 'ERROR: Unable to retrieve any image in dropped data';
+  }
+
+  function getFiles(dT) {
+    // quite simple: won't traverse folders
+    var files = [];
+    if (dT.files && dT.files.length) {
+      for (var i = 0; i < dT.files.length; i++) {
+        file = dT.files[i];
+        // only image Files
+        if (file.type.indexOf('image/') === 0) {
+          img = new Image()
+          img.onerror = onIMGError;
+          img.src = URL.createObjectURL(file);
+          files.push(img);
+        }
+      }
+    }
+    return files;
+  }
+
+  function getHTMLMarkup(dT) {
+    var markup = dT.getData('text/html');
+    if (markup) {
+      var doc = new DOMParser().parseFromString(markup, 'text/html');
+      var imgs = doc && doc.querySelectorAll('img,image') || [];
+      return Array.prototype.map.call(imgs, toImageObject);
+    }
+
+    function toImageObject(element) {
+      var img;
+      if (element instanceof SVGImageElement) {
+        img = new Image();
+        img.src = element.getAttributeNS('http://www.w3.org/1999/xlink', 'href') ||
+          element.getAttribute('href');
+      } else {
+        img = document.adoptNode(element);
+      }
+      img.onerror = onIMGError;
+      return img;
+    }
+  }
+
+  send_btn.onclick = function sendData() {
+    recognizeObjects(src.firstChild);
+  };
+
+  function recognizeObjects(node) {
+    var url = node.src;
+    var enc = url.split(",")[1]
+    if (enc == undefined){
+      enc = getBase64Image(node)
+    }
+    if (enc == undefined){
+      res.innerHTML = 'ERROR: Unable to get source image data'
+      return
+    }
+
+    var bin = atob(enc)
+
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) {
+      bytes[i] = bin.charCodeAt(i);
+    }
+    var blob = new Blob([bytes], {type: "image/jpg"});
+
+    var req = new XMLHttpRequest();
+    req.responseType = "json";
+    req.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        res.innerHTML = ''
+        var table = document.createElement("UL");
+        for (i = 0; i < 5; i++) {
+          var node = document.createElement("LI");
+          var restext = document.createTextNode(req.response[i][0] + " (Score : " + req.response[i][1] + ")");
+          node.appendChild(restext);
+          table.appendChild(node);
+        }
+        res.appendChild(table);
+      }
+    };
+
+    var url = document.baseURI
+    url = url.substring(0, url.lastIndexOf('/'))
+    url += '/score?count=5'
+
+    req.open('POST', url);
+    req.send(blob);
+  }
+
+  function getBase64Image(imgElem) {
+    // imgElem must be on the same server otherwise a cross-origin error will be thrown "SECURITY_ERR: DOM Exception 18"
+    var canvas = document.createElement("canvas");
+    canvas.width = imgElem.naturalWidth;
+    canvas.height = imgElem.naturalHeight;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(imgElem, 0, 0);
+    var dataURL = canvas.toDataURL("image/png");
+
+    // Show what we've captured
+    // var image = new Image();
+    // image.src = dataURL;
+    // res.innerHTML = 'Processing:<br/>'
+    // res.appendChild(image);
+
+    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+  }
+
+  // in case we can't load it
+  function onIMGError() {
+    src.innerHTML = 'ERROR: Cannot load image';
+  }
+</script>

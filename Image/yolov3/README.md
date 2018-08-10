@@ -35,20 +35,26 @@ Because we are building Darknet, **deployment can only be done from Linux.**
 
    * Get the service auth keys (use either one):
 
-         az ml service keys realtime -i full_service_id
+         az ml service keys realtime -i [full_service_id]
 
    * Get the service URL:
 
-         az ml service usage realtime -i full_service_id
+         az ml service usage realtime -i [full_service_id]
 
    * Call service
 
-         ./call.sh service_url auth_key
+         ./call.sh [service_url] [auth_key]
 
+## Test your deployed service using a UI web page
+
+To demonstrate a simple example of how you can customize your deployed web service, 
+we provide a HTML UI web page that is hosted by your deployed service.
+
+To test the UI web page of your deployed service, please refer to [these steps](../../README.md#test-your-deployed-service-using-a-ui-web-page).
 
 ## Setting up Local Debugging Environment
 
 If you'd like to speed up your edit->debug cycle, you can run the service directly
 on your Linux machine (without building Docker image).
 
-To setup a local debugging environment, please refer to [these steps](../../README.md).
+To setup a local debugging environment, please refer to [these steps](../../README.md#setting-up-local-debugging-environment-linux-only).
