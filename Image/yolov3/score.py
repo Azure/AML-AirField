@@ -33,7 +33,7 @@ def run(request):
         os.remove(fileIn)
 
         if returnImage:
-            fileOut += '.png'
+            fileOut += '.jpg'
             with open(fileOut, "rb") as file:
                 outBytes = file.read()
 
