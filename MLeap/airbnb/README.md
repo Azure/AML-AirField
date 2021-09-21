@@ -17,7 +17,7 @@ Requirements:
 
 1. Complete the [Setup steps](../README.md).
 
-This example follows the example laid out in the [MLeap demo](https://github.com/combust/mleap-demo/blob/master/notebooks/airbnb-price-regression.ipynb) where it trains a simple linear regression model and a random forest model to predict airbnb prices. The data used for thie model can be downloaded from [here](https://s3-us-west-2.amazonaws.com/mleap-demo/datasources/airbnb.avro)
+This example follows the example laid out in the [MLeap demo](https://github.com/combust/mleap-demo/blob/master/notebooks/airbnb-price-regression.ipynb) where it trains a simple linear regression model and a random forest model to predict airbnb prices. The data used for thie model can be downloaded from [here](http://insideairbnb.com/get-the-data.html)
 
 2. Install SBT
 
